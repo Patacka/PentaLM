@@ -14,6 +14,7 @@ PPO_updater:
   gamma: 0.99
   lambda_gae: 0.95
   max_grad_norm: 0.5
+  entropy_coef: 0.01
 lamorel_args:
   log_level: info
   allow_subgraph_use_whith_gradient: false
