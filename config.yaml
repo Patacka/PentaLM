@@ -43,4 +43,4 @@ rl_script_args:
   seed: 41
   max_episode_length: 20
   epochs: 10
-  steps_per_epoch: 2
+  steps_per_epoch: 3

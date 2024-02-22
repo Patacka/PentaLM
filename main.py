@@ -12,6 +12,8 @@ from pentestenv import PentestEnvLLM
 import logging
 import matplotlib.pyplot as plt
 import os
+import functools as f
+from operator import add
 lamorel_init()
 
 # Adopted from Lamorel/examples/PPO_finetuning
@@ -298,9 +300,15 @@ def main(config: DictConfig):
 
             score_and_value = agent.custom_module_fns(['score', 'value'], contexts=[choose_prompt], candidates=[action])[ZERO_AS_BS_IS_1]
             observation, reward, done, _ = env.step(action)
-
+            print(reward)
+            proba_dist = torch.distributions.Categorical(logits=score_and_value['score'])
+            sampled_actions = proba_dist.sample()
+            log_probs = proba_dist.log_prob(sampled_actions)
             epoch_ended = t+1 == config.rl_script_args.steps_per_epoch
-            buffer.store(task_prompt, [action], [action_space], reward, score_and_value['value'][0], score_and_value['score'][0])
+            print(reward)
+            print(score_and_value['value'])
+            print(score_and_value['value'][0])
+            buffer.store([task_prompt], [action], [action_space], reward, score_and_value['value'][0], [log_probs])
             episode_return += reward
             episode_length += 1
             timeout = episode_length == config.rl_script_args.max_episode_length
@@ -319,6 +327,7 @@ def main(config: DictConfig):
 
         rl_script_logger.info(f"PPO update number {epoch + 1}")
         trajectories = buffer.get()
+        print(trajectories)
         update_results = agent.update(trajectories['obs'],
                                         trajectories['possible_act'],
                                         actions=trajectories['act'],
